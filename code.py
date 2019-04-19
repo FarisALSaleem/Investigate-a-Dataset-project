@@ -10,7 +10,7 @@ def remove_nulls_and_duplicates(d):
         d = d.drop_duplicates(inplace=True)
     if d.isnull().sum().any():
         d = d.dropna(inplace=True)
-    d.loc[99832, 'Age'] = round(df["Age"].mean())
+    d.loc[(d.Age < 0), 'Age'] = round(df["Age"].mean())
     return d
 
 
