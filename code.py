@@ -1,53 +1,134 @@
+#!/usr/bin/env python3git
 import pandas as pd
 import numpy as np
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
+from datetime import timedelta
 
 
-def remove_nulls_and_duplicates(df):
-    if sum(df.duplicated()) > 0:
-        df = df.drop_duplicates(inplace=True)
-    if not df.isnull().sum().any():
-        df = df.dropna(inplace=True)
-    return df
+def remove_nulls_and_duplicates(d):
+    if sum(d.duplicated()) > 0:
+        d = d.drop_duplicates(inplace=True)
+    if d.isnull().sum().any():
+        d = d.dropna(inplace=True)
+    d.loc[99832, 'Age'] = round(df["Age"].mean())
+    return d
 
 
-def change_to_int64(df, fields):
+def change_to_int64(d, fields):
     for field in fields:
-        df[field] = df[field].astype(np.int64)
-    return df
+        d[field] = d[field].astype(np.int64)
+    return d
 
 
-def change_to_datetime64(df, fields):
+def change_to_datetime64(d, fields):
     for field in fields:
-        df[field] = df[field].astype('datetime64[ns]')
-    return df
+        d[field] = d[field].astype('datetime64[ns]')
+    return d
 
 
-def change_to_bool(df, fields):
+def change_to_bool(d, fields):
     for field in fields:
-        df[field] = df[field].astype('bool')
-    return df
+        d[field] = d[field].astype('bool')
+    return d
 
 
 if __name__ == '__main__':
     # step 1 load csv
     df = pd.read_csv('noshowappointments-kagglev2-may-2016.csv')
+    # step 2 Data wrangling
 
-    # step 2 data wrangling
-
-    # step 2.1 remove nulls & duplicates
+    # step 2.1 Remove nulls & duplicates
     df = remove_nulls_and_duplicates(df)
 
-    # step 2.2 fix types
+    # step 2.2 Fix types
     df = change_to_int64(df, ['PatientId'])
     df = change_to_datetime64(df, ['ScheduledDay', 'AppointmentDay'])
     df = change_to_bool(df, ['Scholarship', 'Hipertension', 'Diabetes', 'Alcoholism', 'Handcap', 'SMS_received'])
-    df['No-show'] = df['No-show'].replace(dict(Yes=1, No=0))
-    
-    # step 2.3 clean the Strings in the Neighbourhood field
+    df['No_show'] = df['No-show'].replace(dict(Yes=True, No=False))
+    del df['No-show']
 
+    # step 3 Exploratory Data Analysis
 
+    # step 3.1 is there a relationships beween (AppointmentDay-ScheduledDay) & No-show
+    df["Days_Between_Ad_Sd"] = df['AppointmentDay'].dt.date - df['ScheduledDay'].dt.date
+    cutoffs = ['min', '25%', '50%', '75%', 'max']
+    bin_names = ['Group_{}'.format(num) for num in range(len(cutoffs))[1:]]
+    bin_edges = [timedelta(-7), timedelta(0), timedelta(4), timedelta(15), timedelta(179)]
+    df['Days_Between_Ad_Sd_Age_group'] = pd.cut(df['Days_Between_Ad_Sd'], bin_edges, labels=bin_names)
 
+    groupsize = [
+        df.query("Days_Between_Ad_Sd_Age_group == '{}'".format(bin_name)).count().AppointmentDay
+        for bin_name in bin_names]
+    groupShow = [
+        df.query("Days_Between_Ad_Sd_Age_group == '{}' and No_show == False".format(bin_name)).count().AppointmentDay
+        for bin_name in bin_names]
+    groupShowp = [round((x / y) * 100).astype(int) for x, y in zip(groupShow, groupsize)]
 
+    y = groupShowp
+    xlabels = ["{} ({})".format(name, cutoff) for name, cutoff in zip(bin_names, cutoffs[1:])]
+    x = range(len(bin_names))
+    plt.bar(x, y)
+    plt.xticks(x, xlabels)
+    plt.title("Days_Between_Ad_Sd_Age_group show %")
+    plt.show()
 
+    # step 3.2 is there a relationships beween SMS_received & No-show
+    show = df.query('No_show == False').count().AppointmentDay
+    no_show = df.query('No_show == True').count().AppointmentDay
+    SMS_received = df.query('SMS_received == True').count().AppointmentDay
+    SMS_received_show = df.query('SMS_received == True and No_show == False').count().AppointmentDay
+    SMS_received_noshow = df.query('SMS_received == True and No_show == True').count().AppointmentDay
+    noSMS_received = df.query('SMS_received == False').count().AppointmentDay
+    noSMS_received_show = df.query('SMS_received == False and No_show == False').count().AppointmentDay
+    noSMS_received_noshow = df.query('SMS_received == False and No_show == True').count().AppointmentDay
 
+    y = [SMS_received_show / SMS_received, SMS_received_noshow / SMS_received]
+    xlabels = ['SMS_received_show', 'SMS_received_noshow']
+    x = [1, 2]
+    plt.bar(x, y)
+    plt.xticks(x, xlabels)
+    plt.title("received a SMS & shows Vs received a SMS & doesn't shows %")
+    plt.show()
+
+    y = [noSMS_received_show / noSMS_received, noSMS_received_noshow / noSMS_received]
+    xlabels = ['noSMS_received_show', 'noSMS_received_noshow']
+    x = [1, 2]
+    plt.bar(x, y)
+    plt.xticks(x, xlabels)
+    plt.title("doesn't receive a SMS & shows Vs doesn't receive a SMS & doesn't shows %")
+    plt.show()
+
+    y = [SMS_received_show / show, noSMS_received_show / show]
+    xlabels = ['SMS_received_show', 'noSMS_received_show']
+    x = [1, 2]
+    plt.bar(x, y)
+    plt.xticks(x, xlabels)
+    plt.title("received a SMS & shows Vs doesn't receive a SMS & shows %")
+    plt.show()
+
+    y = [SMS_received_noshow / no_show, noSMS_received_noshow / no_show]
+    xlabels = ['SMS_received_noshow', 'noSMS_received_noshow']
+    x = [1, 2]
+    plt.bar(x, y)
+    plt.xticks(x, xlabels)
+    plt.title("received a SMS & doesn't shows Vs doesn't receive a SMS & doesn't shows %")
+    plt.show()
+
+    # step 3.3 is there relationships beween age & no-show
+    cutoffs = ['min', '25%', '50%', '75%', 'max']
+    bin_names = ['Group_{}'.format(num) for num in range(len(cutoffs))[1:]]
+    bin_edges = [np.NINF, 18, 37, 55, 115]
+    df['Age_group'] = pd.cut(df['Age'], bin_edges, labels=bin_names)
+
+    groupsize = [df.query("Age_group == '{}'".format(bin_name)).count().AppointmentDay for bin_name in bin_names]
+    groupShow = [df.query("Age_group == '{}' and No_show == False".format(bin_name)).count().AppointmentDay for
+                 bin_name in bin_names]
+    groupShowp = [round((x / y) * 100).astype(int) for x, y in zip(groupShow, groupsize)]
+
+    y = groupShowp
+    xlabels = ["{} ({})".format(name, cutoff) for name, cutoff in zip(bin_names, cutoffs[1:])]
+    x = range(len(bin_names))
+    plt.bar(x, y)
+    plt.xticks(x, xlabels)
+    plt.title("Age group show %")
+    plt.show()
