@@ -55,7 +55,7 @@ if __name__ == '__main__':
 
     # step 3 Exploratory Data Analysis
 
-    # step 3.1 is there a relationships beween (AppointmentDay-ScheduledDay) & No-show
+    # step 3.1 is there a relationship between (AppointmentDay-ScheduledDay) & No-show
     df["Days_Between_Ad_Sd"] = df['AppointmentDay'].dt.date - df['ScheduledDay'].dt.date
 
     # plot 1 - "Relationship between (AppointmentDay - ScheduledDay)\n and patiences showing up" (not useful)
@@ -65,7 +65,7 @@ if __name__ == '__main__':
     plt.ylabel("The number of patiences that show up")
     plt.show()
 
-    # plot 2 - The % of patiences that showed up per group
+    # plot 2 - The % of Patients that showed up per group
     cutoffs = ['min', '25%', '50%', '75%', 'max']
     bin_names = ['Group_{}'.format(num) for num in range(len(cutoffs))[1:]]
     bin_edges = [timedelta(-7), timedelta(0), timedelta(4), timedelta(15), timedelta(179)]
@@ -85,11 +85,11 @@ if __name__ == '__main__':
     plt.bar(x, y)
     plt.xticks(x, xlabels)
     plt.xlabel("The Groups")
-    plt.ylabel("The % of patiences that showed up")
-    plt.title("The % of patiences that showed up per group")
+    plt.ylabel("The % of Patients that showed up")
+    plt.title("The % of Patient that showed up per group")
     plt.show()
 
-    # step 3.2 is there a relationships beween SMS_received & No-show
+    # step 3.2 is there a relationship between SMS_received & No-show
     show = df.query('No_show == False').count().AppointmentDay
     no_show = df.query('No_show == True').count().AppointmentDay
     SMS_received = df.query('SMS_received == True').count().AppointmentDay
@@ -99,33 +99,33 @@ if __name__ == '__main__':
     noSMS_received_show = df.query('SMS_received == False and No_show == False').count().AppointmentDay
     noSMS_received_noshow = df.query('SMS_received == False and No_show == True').count().AppointmentDay
 
-    # plot one - % of Patiences that received a SMS & showed up Vs received a SMS & didn't show up
+    # plot one - % of Patients that received a SMS & showed up Vs received a SMS & didn't show up
     y = [SMS_received_show / SMS_received, SMS_received_noshow / SMS_received]
     xlabels = ['Received SMS and showed up', "Received SMS but didn't showed up"]
     x = [1, 2]
     plt.bar(x, y)
     plt.xticks(x, xlabels)
-    plt.title("% of Patiences that received a SMS & showed up\nVs received a SMS & but didn't show up")
+    plt.title("% of Patient that received a SMS & showed up\nVs received a SMS & but didn't show up")
     plt.ylabel("% out of 1")
     plt.show()
 
-    # plot two - % of Patiences that didn't received a SMS but showed up Vs didn't received a SMS & didn't show up
+    # plot two - % of Patients that didn't received a SMS but showed up Vs didn't received a SMS & didn't show up
     y = [noSMS_received_show / noSMS_received, noSMS_received_noshow / noSMS_received]
     xlabels = ["Didn't received SMS\nbut showed up", "Didn't received SMS\nand didn't showed up"]
     x = [1, 2]
     plt.bar(x, y)
     plt.xticks(x, xlabels)
-    plt.title("% of Patiences that didn't received a SMS but showed up\nVs didn't received a SMS & didn't show up")
+    plt.title("% of Patient that didn't received a SMS but showed up\nVs didn't received a SMS & didn't show up")
     plt.ylabel("% out of 1")
     plt.show()
 
-    # plot three -  % of Patiences that received a SMS and showed up Vs didn't received a SMS but showed up
+    # plot three -  % of Patients that received a SMS and showed up Vs didn't received a SMS but showed up
     y = [SMS_received_show / show, noSMS_received_show / show]
     xlabels = ['Received SMS and showed up', "Didn't received SMS\nbut showed up"]
     x = [1, 2]
     plt.bar(x, y)
     plt.xticks(x, xlabels)
-    plt.title("% of Patiences that received a SMS and showed up\nVs didn't received a SMS but showed up")
+    plt.title("% of Patients that received a SMS and showed up\nVs didn't received a SMS but showed up")
     plt.ylabel("% out of 1")
     plt.show()
 
@@ -135,12 +135,12 @@ if __name__ == '__main__':
     x = [1, 2]
     plt.bar(x, y)
     plt.xticks(x, xlabels)
-    plt.title("% of Patiences that received a SMS but didn't show up\nVs didn't received a SMS & didn't show up")
+    plt.title("% of Patients that received a SMS but didn't show up\nVs didn't received a SMS & didn't show up")
     plt.ylabel("% out of 1")
     plt.show()
 
-    # step 3.3 is there relationships beween age & no-show
-    # plot one - The % of patiences that showed up per group
+    # step 3.3 is there relationship between age & no-show
+    # plot one - The % of patients that showed up per group
     cutoffs = ['min', '25%', '50%', '75%', 'max']
     bin_names = ['Group_{}'.format(num) for num in range(len(cutoffs))[1:]]
     bin_edges = [np.NINF, 18, 37, 55, 115]
@@ -158,6 +158,6 @@ if __name__ == '__main__':
     plt.xticks(x, xlabels)
     plt.title("Age group show %")
     plt.xlabel("The Groups")
-    plt.ylabel("The % of patiences that showed up")
-    plt.title("The % of patiences that showed up per group")
+    plt.ylabel("The % of patients that showed up")
+    plt.title("The % of patients that showed up per group")
     plt.show()
